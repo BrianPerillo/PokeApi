@@ -8,13 +8,26 @@ import {
 
 const Card = ({pokemon}) => {
 
+    //Tomo el nombre del pokemon desde la prop que recibo:
+    const nombre = pokemon.forms.map(nombre => {
+        return (nombre.name)
+    })
+    console.log(nombre);
 
     return ( 
         <Fragment>
         <div class="col-md-2 m-3 profile-card-1">
-        <Link to='pokemon' style={{textDecoration: 'none', color:'white'}}>
-        <div class="img"><img src={pokemon.sprites.front_default}/></div><a class="view-more" href=""><i class="fa fa-plus-circle" aria-hidden="true"></i>
-            <div class="popup"></div></a>
+        
+        <div class="img"><img src={pokemon.sprites.front_default}/></div>
+        <Link to={`/${nombre}`} // Paso el nombre del pokemon para la URL
+            style={{textDecoration: 'none', color:'white'}}>
+            <button className="btn btn-propio">
+                <a class="view-more">
+                 <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                </a>
+            </button>
+        </Link>
+        <div class="popup"></div>
         <div class="mid-section">
             <div class="name">
                 <p>Nombre:</p> {pokemon.forms.map(nombre => {
@@ -45,7 +58,7 @@ const Card = ({pokemon}) => {
            
         </div>
        
-        </Link>
+        
         </div>
         
 

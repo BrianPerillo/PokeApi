@@ -20,7 +20,7 @@ function App() {
 
     <Router>
         <Switch>
-            <Route path="/pokemon">
+            <Route path="/:nombre">
                 <Pokemon/>
             </Route>
             <Route path="/">
