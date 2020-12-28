@@ -7,8 +7,8 @@ import {
 } from 'react-router-dom';
 
 import Index from './components/Index';
-import Card from './components/Card'
 import Pokemon from './components/Pokemon'
+
 
 function App() {
 

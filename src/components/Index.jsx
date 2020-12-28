@@ -1,6 +1,7 @@
-import React, {Fragment, useState, useEffect} from 'react'
+import React, {Fragment, useState, useEffect} from 'react';
 import {getAllPokemons, getPokemon} from '../services/pokemon';
-import Card from '../components/Card'
+import Card from '../components/Card';
+import CardSearch from '../components/CardSearch';
 import {
     BrowserRouter as Router,
     Route,
@@ -8,10 +9,12 @@ import {
     Link,
     useParams
   } from 'react-router-dom';
+import {useForm} from 'react-hook-form';
 
 const Index = (props) => {
     
 const[pokemonData, setPokemonData] = useState([]);
+const[pokemonDataSearch, setPokemonDataSearch] = useState([]);
 const[nextUrl, setNextUrl] = useState('');
 const[prevUrl, setPrevUrl] = useState('');
 const[loading, setLoading] = useState(true);
@@ -19,9 +22,17 @@ const[offset, setOffset] = useState(0);
 const[limit, setLimit] = useState(10);
 const[UrlsDetalles, setUrlDetalles] = useState([]);
 var url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`;
+const[search, setSearch] = useState(false);
+const[urlsTipos, setUrlsTipos] = useState([])
 
 const [bool, setBool] = useState(false);
 const{offsetB,limitB}=useParams();
+
+const {register, errors, handleSubmit, setValue} = useForm({
+
+
+});
+
 
 
 useEffect(()=>{
@@ -35,7 +46,11 @@ useEffect(()=>{
         console.log("urlIndexParam" + url);
     }
 
-    async function fetchData(){
+    fetchData(url);
+
+    },[offset,limit])
+
+    async function fetchData(url){
 
         let response = await getAllPokemons(url);
         //setNextUrl(response.next);
@@ -46,10 +61,6 @@ useEffect(()=>{
         setLoading(false)
 
     }
-
-    fetchData();
-
-    },[offset,limit])
 
      const urls = async (data) => {
         let arrayUrls = await Promise.all(data.map(async url => { 
@@ -110,6 +121,44 @@ useEffect(()=>{
 
             }
     }
+
+    const onSubmit = async (data, event) => {
+        console.log("DATAAAAAAAAAAAAAAAAAAA" + data.name);
+        event.preventDefault(); 
+        event.target.reset();
+        if(data.name){
+            var urlNombre = `https://pokeapi.co/api/v2/pokemon/${data.name}`;
+            const result = await getPokemon(urlNombre);
+            console.log("Result de consulta onSubmit: " + result.forms.map(name=>name.name));
+            setPokemonDataSearch(result);
+            console.log("Resultado pokemonData despues de setear: " + pokemonDataSearch);
+            setSearch(true) 
+        }
+        else if(data.type){
+            var urlTipo = `https://pokeapi.co/api/v2/type/${data.type}`;
+            const result = await getPokemon(urlTipo);
+            console.log(result.pokemon.map(pokemon=>pokemon.pokemon.url));//Hasta acá ya tengo las url de los pokemones que pertenezcan al tipo seleccionado
+            const urls = result.pokemon.map(pokemon=>pokemon.pokemon.url);
+            setUrlsTipos(urls);
+            console.log("abajo urls seteadas en setUrlsTipos");
+            console.log(urls);
+            const arrayPokemonesTipo = [];
+            for(var i=0; i<10; i++){
+                console.log(urls[i]);
+                const pokemonTipo = await getPokemon(urls[i]);
+                arrayPokemonesTipo.push(pokemonTipo);
+                console.log("Abajo log de arrayPokemonesTipo");
+                console.log(arrayPokemonesTipo);
+            }
+            setPokemonData(arrayPokemonesTipo);
+        }
+       
+    }
+
+    const handleInputChange = event => {
+        console.log("onChange");
+    }
+    
 /* Viejo loading con url fija, al cambiar a dinámica quedó obsoleto
  const loadingPokemon = async (data) => {
         let _pokemonData = await Promise.all(data.map(async pokemon => {  //Promise.all sirve para que se ejecute solo si no hay promesas pendientes, es decir, 
@@ -146,20 +195,64 @@ useEffect(()=>{
     return ( 
         <Fragment>
             <div className="container">
-                {
+
+                <form className="col-md-8 mx-auto" onSubmit={handleSubmit(onSubmit)}>
+                    <div className="row justify-content-center">
+                        <div className="col-md-5 mr-2"> 
+                            <input className="form-control my-2 p-2" type="text" name="name" placeholder="Buscar por Nombre" onChange={handleInputChange} ref={register}/>
+                        </div>
+                        <div className="col-md-2 mr-2"> 
+                            <select className="form-control my-2 p-2" name="type" ref={register}>
+                                <option value="" selected disabled>tipo</option>
+                                <option value="1">normal</option>
+                                <option value="2">fighting</option>
+                                <option value="3">flying</option>
+                                <option value="4">poison</option>
+                                <option value="5">ground</option>
+                                <option value="6">rock</option>
+                                <option value="7">bug</option>
+                                <option value="8">ghost</option>
+                                <option value="9">steel</option>
+                                <option value="10">fire</option>
+                                <option value="11">water</option>
+                                <option value="12">grass</option>
+                                <option value="13">electric</option>
+                                <option value="14">psychic</option>
+                                <option value="15">ice</option>
+                                <option value="16">dragon</option>
+                                <option value="17">dark</option>
+                                <option value="18">fairy</option>
+                                <option value="10001">unknown</option>
+                                <option value="10002">shadow</option>
+                            </select>
+                        </div>
+                        <div className="col-md-1 ml-2">
+                        <button className="form-control btn btn-danger my-2 p-2">Enviar</button>
+                        </div>
+                    </div>
+                </form>
+
+                {/*
                 loading ? (
                     <p>Loading...</p>
                 ):(
                     <p>Data Fetched</p>
                 )
-                }
+                */}
 
                 <div className="row justify-content-center">
                 {
-                    pokemonData.map((pokemon,i) => {
-                        return <Card key={i} pokemon={pokemon} offset={offset} limit={limit}/>
-                    })
+                    search ? (
+                        <CardSearch pokemonData={pokemonDataSearch} offset={offset} limit={limit}/> //Card para busqueda de 1 solo result. Actualmente para buscar x nombre
+                    ):(
+                        pokemonData.map((pokemon,i) => {
+                            return <Card key={i} pokemon={pokemon} offset={offset} limit={limit}/> //Card para busqueda que devuelve varios resultados. Actualmente para 
+                        })                                                                         //Resultados que se muestran x defecto en index y para filtro x tipos
+                    )
+
                 }
+
+                
                 </div>
                 
                 <Link to={`/${offset-10}/${limit}`}><button className='btn btn-primary' onClick={()=>prev()}>{'<'}</button></Link>
