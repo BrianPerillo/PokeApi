@@ -6,10 +6,10 @@ import {
     Link
   } from 'react-router-dom';
 
-const Card = ({pokemon}) => {
+const Card = (props) => {
 
     //Tomo el nombre del pokemon desde la prop que recibo:
-    const nombre = pokemon.forms.map(nombre => {
+    const nombre = props.pokemon.forms.map(nombre => {
         return (nombre.name)
     })
     console.log(nombre);
@@ -18,8 +18,8 @@ const Card = ({pokemon}) => {
         <Fragment>
         <div class="col-md-2 m-3 profile-card-1">
         
-        <div class="img"><img src={pokemon.sprites.front_default}/></div>
-        <Link to={`/${nombre}`} // Paso el nombre del pokemon para la URL
+        <div class="img"><img src={props.pokemon.sprites.front_default}/></div>
+        <Link to={`/${nombre}/${props.offset}/${props.limit}`} // Paso el nombre del pokemon para la URL y offset y limit para volver a última página visitada
             style={{textDecoration: 'none', color:'white'}}>
             <button className="btn btn-propio">
                 <a class="view-more">
@@ -30,14 +30,14 @@ const Card = ({pokemon}) => {
         <div class="popup"></div>
         <div class="mid-section">
             <div class="name">
-                <p>Nombre:</p> {pokemon.forms.map(nombre => {
+                {props.pokemon.forms.map(nombre => {
                 return (nombre.name)
             })}
             </div>
             
             <div class="description">
                 <p>Tipos:</p>
-                {pokemon.types.map(type => {
+                {props.pokemon.types.map(type => {
                 return(<p style={{float:'left'}}>{type.type.name}</p>) 
                 }
                 )}

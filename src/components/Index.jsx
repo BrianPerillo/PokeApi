@@ -5,10 +5,11 @@ import {
     BrowserRouter as Router,
     Route,
     Switch,
-    Link
+    Link,
+    useParams
   } from 'react-router-dom';
 
-const Index = () => {
+const Index = (props) => {
     
 const[pokemonData, setPokemonData] = useState([]);
 const[nextUrl, setNextUrl] = useState('');
@@ -19,7 +20,20 @@ const[limit, setLimit] = useState(10);
 const[UrlsDetalles, setUrlDetalles] = useState([]);
 var url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`;
 
+const [bool, setBool] = useState(false);
+const{offsetB,limitB}=useParams();
+
+
 useEffect(()=>{
+    
+
+    if(offsetB !== undefined && limitB !== undefined && bool === false){
+        setBool(true);
+        setOffset(parseInt(offsetB)); // parse para pasar el offset de string a int. Llega como string porque es un parámetro que tomamos de la url, del get.
+        setLimit(parseInt(limitB));
+        console.log("offsetB" + offset);
+        console.log("urlIndexParam" + url);
+    }
 
     async function fetchData(){
 
@@ -35,7 +49,7 @@ useEffect(()=>{
 
     fetchData();
 
-    },[])
+    },[offset,limit])
 
      const urls = async (data) => {
         let arrayUrls = await Promise.all(data.map(async url => { 
@@ -43,7 +57,7 @@ useEffect(()=>{
         }
         ));
         setUrlDetalles(arrayUrls);
-        console.log(arrayUrls);
+        //console.log(arrayUrls);
     }
        
 
@@ -51,14 +65,14 @@ useEffect(()=>{
         
         let _pokemonData = await Promise.all(data.map(async url => {  //Promise.all sirve para que se ejecute solo si no hay promesas pendientes, es decir, 
             let pokemonRecord = await getPokemon(url);                //una vez que las promesas que hayan quedado en cola se resuelvan, recién ahí se ejecuta este código.
-            console.log(pokemonRecord);
+           // console.log(pokemonRecord);
             return pokemonRecord;                                         //_pokemonData es un array, porque se usando map, recordar que ap genera un array
                                                                         //Entonces cada vez que se ejecute va a ir guardando los datos en posiciones distintas sin pisarlos
         }
         ));
         console.log(_pokemonData);
         setPokemonData(_pokemonData);  //Una vez terminado el loop del map y con todos los datos guardados en el array _pokemonData, paso ese array a setPokemonData
-        console.log("POK DATA" + pokemonData.map(result=>result.height));
+        //console.log("POK DATA" + pokemonData.map(result=>result.height));
     }
 
     
@@ -67,36 +81,33 @@ useEffect(()=>{
 
     //NEXT PAGE  
     const next = async () => {
-            
+            setBool(true);
             let response = await getAllPokemons(`https://pokeapi.co/api/v2/pokemon?offset=${offset+10}&limit=${limit}`) 
-            console.log("Offset" + response.results.map(result=>result.name)); // estos results, del response de la linea de arriba son los correctos, los de las siguiente pag.
-            console.log("111111111111" + `https://pokeapi.co/api/v2/pokemon?offset=${offset+10}&limit=${limit}`);
+            //console.log("Offset" + response.results.map(result=>result.name)); // estos results, del response de la linea de arriba son los correctos, los de las siguiente pag.
             var _UrlsDetalles = response.results.map(results=>{return results.url});
             urls(_UrlsDetalles); //Acá tengo el array de urls correcto el problema era que el set dentro la función urls no producía cambios en el momento,
             //sino que esos cambios se veían reflejados recién en el próximo render o al ejecutarse la siguiente vez
             await loadingPokemon(_UrlsDetalles)//Aca por algún motivo se está pasando el array de urls viejos no el correcto, será que la linea de arriba no se está ejecutando
-            console.log("2222222222222" + `https://pokeapi.co/api/v2/pokemon?offset=${offset+10}&limit=${limit}`);
-            console.log(UrlsDetalles);
             setOffset(offset+10);
-            console.log("Offset" + offset); // Al terminar de correr este código recién ahí se setean los nuevos arrays
+            // Al terminar de correr este código recién ahí se setean los nuevos arrays
             //El mismo problema ocurría con el offset, al no ser inmediato el cambio del set, no se seteaba el nuevo dato, por lo que se hacía la consulta con el offset anterior,
             //Luego si se actulizaba, pero siempre estaba un paso atrás, cuando offset debería ser 10 era 0 cuando debía ser 20 era 10, etc...
-     }
+            props.switchIndex();
+            
+        }
 
     //PREVIOUS PAGE
     const prev = async () => {
 
             if(offset >= 10){
                 let response = await getAllPokemons(`https://pokeapi.co/api/v2/pokemon?offset=${offset-10}&limit=${limit}`) 
-                console.log("Offset" + response.results.map(result=>result.name)); // estos results, del response de la linea de arriba son los correctos, los de las siguiente pag.
-                console.log("111111111111" + `https://pokeapi.co/api/v2/pokemon?offset=${offset-10}&limit=${limit}`);
+                //console.log("Offset" + response.results.map(result=>result.name)); // estos results, del response de la linea de arriba son los correctos, los de las siguiente pag.
                 var _UrlsDetalles = response.results.map(results=>{return results.url});
                 urls(_UrlsDetalles); //Acá tengo el array de urls correcto
                 await loadingPokemon(_UrlsDetalles)//Aca por algún motivo se está pasando el array de urls viejos no el correcto, será que la linea de arriba no se está ejecutando
-                console.log("2222222222222" + `https://pokeapi.co/api/v2/pokemon?offset=${offset-10}&limit=${limit}`);
-                console.log(UrlsDetalles);
                 setOffset(offset-10);
-                console.log("Offset" + offset); // Al terminar de correr este código recién ahí se setean los nuevos arrays
+                props.switchIndex();
+
             }
     }
 /* Viejo loading con url fija, al cambiar a dinámica quedó obsoleto
@@ -146,13 +157,13 @@ useEffect(()=>{
                 <div className="row justify-content-center">
                 {
                     pokemonData.map((pokemon,i) => {
-                        return <Card key={i} pokemon={pokemon}/>
+                        return <Card key={i} pokemon={pokemon} offset={offset} limit={limit}/>
                     })
                 }
                 </div>
                 
-                <button className='btn btn-primary' onClick={()=>prev()}>{'<'}</button>
-                <button className='btn btn-primary' onClick={()=>next()}>{'>'}</button>
+                <Link to={`/${offset-10}/${limit}`}><button className='btn btn-primary' onClick={()=>prev()}>{'<'}</button></Link>
+                <Link to={`/${offset+10}/${limit}`}><button className='btn btn-primary' onClick={()=>next()}>{'>'}</button></Link>
 
 
             </div>

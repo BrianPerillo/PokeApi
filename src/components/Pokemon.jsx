@@ -4,7 +4,7 @@ import {getPokemon} from '../services/pokemon'
 
 const Pokemon = () => {
 
-    const {nombre} = useParams();
+    const {nombre,offset,limit} = useParams();
     const [detalle, setDetalle] = useState({});
     const [bool, setBool] = useState(false);
     

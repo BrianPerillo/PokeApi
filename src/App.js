@@ -12,20 +12,37 @@ import Pokemon from './components/Pokemon'
 
 function App() {
 
+  const [bool, setBool] = useState(false);
+
+  function switchIndex(){
+
+    setBool(true);
+   
+  }
+
     //Rutas
-
-
+    //Aca hay que establecer el offset y limit para pasarlo a la ruta index
 
   return (
 
     <Router>
         <Switch>
-            <Route path="/:nombre">
+            <Route path="/:nombre/:offset/:limit">
                 <Pokemon/>
             </Route>
-            <Route path="/">
-                <Index/>
-            </Route>
+            {
+              bool ? (
+                <Route path="/:offsetB/:limitB">
+                  <Index switchIndex={switchIndex}/>
+                </Route> 
+              ):(              
+              <Route path="/">
+                <Index switchIndex={switchIndex}/>
+              </Route>)
+            }
+
+
+
           </Switch>
     </Router>
      

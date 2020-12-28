@@ -47,9 +47,10 @@ body {
     width: 100%;
     top: 200px;
     left: 0;
-    padding: 10px 20px 0;
+    padding: 0px 20px 0;
     box-sizing: border-box;
     background: white;
+    z-index: 10000000;
   }
   .profile-card-1 .mid-section .name {
     color: #333333;
