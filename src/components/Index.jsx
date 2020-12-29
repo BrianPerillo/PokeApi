@@ -1,6 +1,6 @@
 import React, {Fragment, useState, useEffect} from 'react';
 import {getAllPokemons, getPokemon} from '../services/pokemon';
-import Card from '../components/Card';
+import ListadoCards from './ListadoCards';
 import CardSearch from '../components/CardSearch';
 import {
     BrowserRouter as Router,
@@ -24,6 +24,8 @@ const[UrlsDetalles, setUrlDetalles] = useState([]);
 var url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`;
 const[search, setSearch] = useState(false);
 const[urlsTipos, setUrlsTipos] = useState([])
+const[searchNombre, setSearchNombre] = useState(false); 
+
 
 const [bool, setBool] = useState(false);
 const{offsetB,limitB}=useParams();
@@ -109,7 +111,7 @@ useEffect(()=>{
 
     //PREVIOUS PAGE
     const prev = async () => {
-
+            console.log("cambio offset");
             if(offset >= 10){
                 let response = await getAllPokemons(`https://pokeapi.co/api/v2/pokemon?offset=${offset-10}&limit=${limit}`) 
                 //console.log("Offset" + response.results.map(result=>result.name)); // estos results, del response de la linea de arriba son los correctos, los de las siguiente pag.
@@ -133,6 +135,7 @@ useEffect(()=>{
             setPokemonDataSearch(result);
             console.log("Resultado pokemonData despues de setear: " + pokemonDataSearch);
             setSearch(true) 
+            setSearchNombre(true); //Cambiamos a true para identificar que se realizó una búsqueda X nombre (búsqueda que arroja un solo resultado)
         }
         else if(data.type){
             var urlTipo = `https://pokeapi.co/api/v2/type/${data.type}`;
@@ -150,8 +153,8 @@ useEffect(()=>{
                 console.log("Abajo log de arrayPokemonesTipo");
                 console.log(arrayPokemonesTipo);
             }
-            setPokemonData(arrayPokemonesTipo);
-        }
+            setPokemonData(arrayPokemonesTipo); // Acá seteamos el pokemonData cambiandole los datos que tenia por el de los pokemones filtrados por tipo
+        }                                       // Entonces la card de abajo carga el nuevo contenido filtrado.
        
     }
 
@@ -241,22 +244,11 @@ useEffect(()=>{
                 */}
 
                 <div className="row justify-content-center">
-                {
-                    search ? (
-                        <CardSearch pokemonData={pokemonDataSearch} offset={offset} limit={limit}/> //Card para busqueda de 1 solo result. Actualmente para buscar x nombre
-                    ):(
-                        pokemonData.map((pokemon,i) => {
-                            return <Card key={i} pokemon={pokemon} offset={offset} limit={limit}/> //Card para busqueda que devuelve varios resultados. Actualmente para 
-                        })                                                                         //Resultados que se muestran x defecto en index y para filtro x tipos
-                    )
 
-                }
-
-                
+                    <ListadoCards pokemonData={pokemonData} pokemonDataName={pokemonDataSearch} prev={prev} next={next} offset={offset} limit={limit} searchNombre={searchNombre}/>
+                    {/*El searchNombre x defecto es false y cuando se hace consulta por name se setea en true(en el onSubmit), este dato se le pasa a ListadoCards que consulta 
+                    este dato para saber si la Card le tiene que pasar los datos de pokemonData o de pokemonDataName*/}
                 </div>
-                
-                <Link to={`/${offset-10}/${limit}`}><button className='btn btn-primary' onClick={()=>prev()}>{'<'}</button></Link>
-                <Link to={`/${offset+10}/${limit}`}><button className='btn btn-primary' onClick={()=>next()}>{'>'}</button></Link>
 
 
             </div>

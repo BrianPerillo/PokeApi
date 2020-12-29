@@ -58,7 +58,8 @@ const nombre = props.pokemonData.forms.map(name=>name.name);
         
         
         </div>
-        
+
+
 
         </Fragment>
      );
