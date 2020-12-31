@@ -25,11 +25,15 @@ var url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`;
 const[search, setSearch] = useState(false);
 const[urlsTipos, setUrlsTipos] = useState([])
 const[searchNombre, setSearchNombre] = useState(false); 
-
+const[searchTipo, setSearchTipo] = useState(false);
+const[iTypeFirst, setITypeFirst] = useState(0);
+const[iTypeSecond, setITypeSecond] = useState(10);
+const[type, setType] = useState(null);
+var datos 
 
 const [bool, setBool] = useState(false);
 const{offsetB,limitB}=useParams();
-
+var type2 = 0;
 const {register, errors, handleSubmit, setValue} = useForm({
 
 
@@ -124,7 +128,36 @@ useEffect(()=>{
             }
     }
 
+    async function resultadosXTipo(type){
+
+        var urlTipo = `https://pokeapi.co/api/v2/type/${type}`;
+        const result = await getAllPokemons(urlTipo);
+        console.log(result.pokemon.map(pokemon=>pokemon.pokemon.url));//Hasta acá ya tengo las url de los pokemones que pertenezcan al tipo seleccionado
+        const urls = result.pokemon.map(pokemon=>pokemon.pokemon.url);
+        setUrlsTipos(urls);
+        console.log("abajo urls seteadas en setUrlsTipos");
+        console.log(urls);
+        const arrayPokemonesTipo = [];
+        for(var i=iTypeFirst; i<iTypeSecond; i++){
+            console.log(iTypeFirst);
+            console.log("ENTRO EN FOR");
+            console.log(urls[i]);
+            const pokemonTipo = await getPokemon(urls[i]);
+            arrayPokemonesTipo.push(pokemonTipo);
+            console.log("Abajo log de arrayPokemonesTipo");
+            console.log(arrayPokemonesTipo);
+        }
+        setPokemonData(arrayPokemonesTipo); // Acá seteamos el pokemonData cambiandole los datos que tenia por el de los pokemones filtrados por tipo
+        setSearchTipo(true);     
+
+    }
+
+
     const onSubmit = async (data, event) => {
+        setITypeFirst(0); // Al realizarce un nuevo Submit vuelvo a setear el typeFirst y typeSecond que controlan el i del for en sus valores iniciales
+        setITypeSecond(10);// Aí si se realiza una petición nueva se muestra la primera página de la nueva consulta. Si esto no se hace, y estamos viendo por ej fire pag 6,
+                            //Este det tiene delay como todos acá.
+        console.log("TIPOOO SUBMIT" + type);//y relizamos una petición para ver los ground, vamos a pasar a ver la pag 6 de los ground en de vez de visualizar la primera
         console.log("DATAAAAAAAAAAAAAAAAAAA" + data.name);
         event.preventDefault(); 
         event.target.reset();
@@ -138,30 +171,35 @@ useEffect(()=>{
             setSearchNombre(true); //Cambiamos a true para identificar que se realizó una búsqueda X nombre (búsqueda que arroja un solo resultado)
         }
         else if(data.type){
-            var urlTipo = `https://pokeapi.co/api/v2/type/${data.type}`;
-            const result = await getPokemon(urlTipo);
-            console.log(result.pokemon.map(pokemon=>pokemon.pokemon.url));//Hasta acá ya tengo las url de los pokemones que pertenezcan al tipo seleccionado
-            const urls = result.pokemon.map(pokemon=>pokemon.pokemon.url);
-            setUrlsTipos(urls);
-            console.log("abajo urls seteadas en setUrlsTipos");
-            console.log(urls);
-            const arrayPokemonesTipo = [];
-            for(var i=0; i<10; i++){
-                console.log(urls[i]);
-                const pokemonTipo = await getPokemon(urls[i]);
-                arrayPokemonesTipo.push(pokemonTipo);
-                console.log("Abajo log de arrayPokemonesTipo");
-                console.log(arrayPokemonesTipo);
-            }
-            setPokemonData(arrayPokemonesTipo); // Acá seteamos el pokemonData cambiandole los datos que tenia por el de los pokemones filtrados por tipo
-        }                                       // Entonces la card de abajo carga el nuevo contenido filtrado.
+            console.log("datatype" + data.type);
+            var type2 = data.type;  //Como el set tiene un delay, el dato lo guardo en una variable, en lugar de usar el useState, y se lo paso al resultadosXTipo
+            setType(data.type);
+            console.log(type);
+            await resultadosXTipo(type2);         // Entonces la card de abajo carga el nuevo contenido filtrado.
+        }                                      
+
        
     }
 
     const handleInputChange = event => {
         console.log("onChange");
     }
-    
+
+    const nextType = async () => {
+        setITypeFirst(iTypeFirst+10); //Este set también se ejecuta con delay
+        setITypeSecond(iTypeSecond+10);
+        await resultadosXTipo(type); 
+        console.log("log itype = " + iTypeFirst);
+    }
+
+    const prevType = async () => {
+        setITypeFirst(iTypeFirst-10);
+        setITypeSecond(iTypeSecond-10);
+        await resultadosXTipo(type); 
+        console.log("log itype = " + iTypeFirst);
+    }
+
+
 /* Viejo loading con url fija, al cambiar a dinámica quedó obsoleto
  const loadingPokemon = async (data) => {
         let _pokemonData = await Promise.all(data.map(async pokemon => {  //Promise.all sirve para que se ejecute solo si no hay promesas pendientes, es decir, 
@@ -245,7 +283,16 @@ useEffect(()=>{
 
                 <div className="row justify-content-center">
 
-                    <ListadoCards pokemonData={pokemonData} pokemonDataName={pokemonDataSearch} prev={prev} next={next} offset={offset} limit={limit} searchNombre={searchNombre}/>
+                    <ListadoCards pokemonData={pokemonData} 
+                    pokemonDataName={pokemonDataSearch} 
+                    prev={prev} 
+                    next={next} 
+                    offset={offset} 
+                    limit={limit} 
+                    searchNombre={searchNombre}
+                    searchTipo={searchTipo}
+                    nextType={nextType}
+                    prevType={prevType}/>
                     {/*El searchNombre x defecto es false y cuando se hace consulta por name se setea en true(en el onSubmit), este dato se le pasa a ListadoCards que consulta 
                     este dato para saber si la Card le tiene que pasar los datos de pokemonData o de pokemonDataName*/}
                 </div>

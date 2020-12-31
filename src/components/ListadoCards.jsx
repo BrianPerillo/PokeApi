@@ -59,7 +59,7 @@ console.log(props.pokemonData);
         
         {
 
-            !props.searchNombre ? (
+            !props.searchNombre && !props.searchTipo ? ( //SI NO HAY SEARCH POR NOMBRE NI POR TIPO
                 <Fragment>
                     <div>
                         <Link to={`/${props.offset-10}/${props.limit}`}><button className='btn btn-primary' onClick={()=>props.prev()}>{'<'}</button></Link>
@@ -76,14 +76,14 @@ console.log(props.pokemonData);
         }
 
 {
-            props.searchTipo ? (    //Acá hay que preguntar si lo que llega es por una búsqueda por tipo, para eso usar booleano como search nombre pero para type, searchtype
-                <Fragment>          {/*que se setee en true si se realizó consulta por tipo y entonces los botones a mostrar serán estos que hay que modificar*/}
-                    <div>           {/*porque son los mismos de arriba copiados*/}
-                        <Link to={`/${props.offset-10}/${props.limit}`}><button className='btn btn-primary' onClick={()=>props.prev()}>{'<'}</button></Link>
-                        <Link to={`/${props.offset+10}/${props.limit}`}><button className='btn btn-primary' onClick={()=>props.next()}>{'>'}</button></Link>
+            props.searchTipo && !props.searchNombre ? (    //Acá hay que preguntar si lo que llega es por una búsqueda por tipo, para eso usar booleano como search nombre pero para type, searchtype
+                <Fragment>                                {/*que se setee en true si se realizó consulta por tipo y entonces los botones a mostrar serán estos que hay que modificar*/}    
+                    <div>                                 {/*porque son los mismos de arriba copiados*/}
+                       <button className='btn btn-primary' onClick={()=>props.prevType()}>{'a'}</button>
+                        <button className='btn btn-primary' onClick={()=>props.nextType()}>{'s'}</button>
                     </div>
-                  </Fragment>
-               ):(
+                </Fragment> 
+               ):(  
                   <Fragment>
                       
                   </Fragment>
